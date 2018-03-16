@@ -30,6 +30,14 @@
 #include <unistd.h>
 #include <stdbool.h>
 
+#if defined _WITH_SNMP
+#include <sys/queue.h>
+#include <net-snmp/net-snmp-config.h>
+#include <net-snmp/net-snmp-includes.h>
+#include <net-snmp/agent/net-snmp-agent-includes.h>
+#include <net-snmp/agent/snmp_vars.h>
+#endif
+
 #include "log.h"
 #include "epoll_loop.h"
 #include "bridge_ctl.h"
@@ -38,6 +46,16 @@
 /* globals */
 static int epoll_fd = -1;
 static struct timespec nexttimeout;
+
+#if defined _WITH_SNMP
+struct epoll_handler_entry {
+    TAILQ_ENTRY(epoll_handler_entry) next;
+    struct epoll_event_handler handler;
+};
+TAILQ_HEAD(, epoll_handler_entry) snmp_fds;
+
+static void event_snmp_update(void);
+#endif
 
 int init_epoll(void)
 {
@@ -100,7 +118,68 @@ static inline void run_timeouts(void)
 {
     bridge_one_second();
     ++(nexttimeout.tv_sec);
+#if defined _WITH_SNMP
+    snmp_timeout();
+    run_alarms();
+    event_snmp_update();
+#endif
 }
+
+#if defined _WITH_SNMP
+static inline void event_snmp_read(uint32_t events, struct epoll_event_handler *h)
+{
+    fd_set fdset;
+
+    FD_ZERO(&fdset);
+    FD_SET(h->fd, &fdset);
+    snmp_read(&fdset);
+    event_snmp_update();
+}
+
+static void event_snmp_update(void)
+{
+    fd_set fdset;
+    int maxfd = 0, block = 1;
+    struct timeval timeout;
+    struct epoll_handler_entry *snmpfd, *snmpfd_next;
+    int fd;
+
+    FD_ZERO(&fdset);
+    snmp_select_info(&maxfd, &fdset, &timeout, &block);
+
+    /* We need to untrack any event whose FD is not in `fdset` anymore */
+    for (snmpfd = TAILQ_FIRST(&snmp_fds); snmpfd; snmpfd = snmpfd_next)
+    {
+        snmpfd_next = TAILQ_NEXT(snmpfd, next);
+
+        if (!FD_ISSET(snmpfd->handler.fd, &fdset))
+        {
+            remove_epoll(&snmpfd->handler);
+            TAILQ_REMOVE(&snmp_fds, snmpfd, next);
+            free(snmpfd);
+        }
+        else
+        {
+            FD_CLR(snmpfd->handler.fd, &fdset);
+        }
+    }
+
+    /* Invariant: FD in `fdset` are not in list of FD */
+    for (fd = 0; fd < maxfd; fd++)
+    {
+        if (FD_ISSET(fd, &fdset))
+        {
+            snmpfd = calloc(1, sizeof(struct epoll_handler_entry));
+
+            snmpfd->handler.fd = fd;
+            snmpfd->handler.arg = NULL;
+            snmpfd->handler.handler = event_snmp_read;
+            add_epoll(&snmpfd->handler);
+            TAILQ_INSERT_TAIL(&snmp_fds, snmpfd, next);
+	}
+    }
+}
+#endif
 
 int epoll_main_loop(volatile bool *quit)
 {
@@ -108,6 +187,10 @@ int epoll_main_loop(volatile bool *quit)
     ++(nexttimeout.tv_sec);
 #define EV_SIZE 8
     struct epoll_event ev[EV_SIZE];
+
+#if defined _WITH_SNMP
+    TAILQ_INIT(&snmp_fds);
+#endif
 
     while(!*quit)
     {
@@ -131,6 +214,11 @@ int epoll_main_loop(volatile bool *quit)
             }
             timeout = 0;
         }
+
+#if defined _WITH_SNMP
+        netsnmp_check_outstanding_agent_requests();
+        event_snmp_update();
+#endif
 
         r = epoll_wait(epoll_fd, ev, EV_SIZE, timeout);
         if(r < 0 && errno != EINTR)
