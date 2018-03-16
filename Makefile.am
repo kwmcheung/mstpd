@@ -14,6 +14,10 @@ mstpd_CFLAGS = \
 if ENABLE_DEVEL
   mstpd_CFLAGS += -g3 -O0
 endif
+if ENABLE_SNMP
+  mstpd_CFLAGS += -D_WITH_SNMP
+endif
+
 mstpctl_CFLAGS = $(mstpd_CFLAGS)
 
 all-local: bridge-stp utils/ifupdown.sh utils/mstp_config_bridge
