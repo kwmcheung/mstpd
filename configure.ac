@@ -63,6 +63,9 @@ AC_ARG_WITH([snmp],
 	[],
 	[with_snmp=no])
 mstpd_CHECK_SNMP
+if test x"$with_snmp" != x"no"; then
+	AC_CONFIG_SUBDIRS([libnsh])
+fi
 AM_CONDITIONAL([ENABLE_SNMP], [test x"$with_snmp" = x"yes"])
 
 # Define PACKAGE_BUILD

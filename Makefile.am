@@ -15,8 +15,12 @@ if ENABLE_DEVEL
   mstpd_CFLAGS += -g3 -O0
 endif
 if ENABLE_SNMP
+  SUBDIRS = libnsh
   mstpd_CFLAGS += -D_WITH_SNMP
+  mstpd_LDADD = libnsh/src/.libs/libnsh.la
 endif
+
+DIST_SUBDIRS = $(SUBDIRS)
 
 mstpctl_CFLAGS = $(mstpd_CFLAGS)
 
