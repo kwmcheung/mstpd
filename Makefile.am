@@ -18,7 +18,7 @@ endif
 if ENABLE_SNMP
   SUBDIRS = libnsh
   mstpd_CFLAGS += -D_WITH_SNMP
-  mstpd_LDADD = libnsh/src/.libs/libnsh.la
+  LIBS += libnsh/src/.libs/libnsh.a
 endif
 
 DIST_SUBDIRS = $(SUBDIRS)
