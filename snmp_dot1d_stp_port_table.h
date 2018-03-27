@@ -22,31 +22,9 @@
 
 ******************************************************************************/
 
-#if _WITH_SNMP
+#ifndef _MSTPD_SNMP_DOT1D_STP_PORT_TABLE_H
+#define _MSTPD_SNMP_DOT1D_STP_PORT_TABLE_H
 
-#include <net-snmp/net-snmp-config.h>
-#include <net-snmp/net-snmp-includes.h>
-#include <net-snmp/agent/net-snmp-agent-includes.h>
+void snmp_init_mib_dot1d_stp_port_table(void);
 
-#include "snmp_dot1d_stp.h"
-#include "snmp_dot1d_stp_port_table.h"
-
-void snmp_init(void)
-{
-    netsnmp_enable_subagent();
-    snmp_disable_log();
-    snmp_enable_stderrlog();
-    init_agent("mstpdAgent");
-
-    snmp_init_mib_dot1d_stp();
-    snmp_init_mib_dot1d_stp_port_table();
-
-    init_snmp("mstpdAgent");
-}
-
-void snmp_fini(void)
-{
-    snmp_shutdown("mstpdAgent");
-}
-
-#endif /* _WITH_SNMP */
+#endif /* _MSTPD_SNMP_DOT1D_STP_PORT_TABLE_H */

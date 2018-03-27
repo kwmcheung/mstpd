@@ -74,6 +74,8 @@ typedef union
 
 typedef __be16 port_identifier_t;
 
+#define GET_NUM_FROM_PRIO(p) (__be16_to_cpu(p) & 0x0FFF)
+
 /* These macros work well for both PortID and BridgeID */
 #define GET_PRIORITY_FROM_IDENTIFIER(id)    (((__u8 *)(&(id)))[0] & 0xF0)
 #define SET_PRIORITY_IN_IDENTIFIER(pri, id) do{ \

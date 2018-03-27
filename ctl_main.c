@@ -67,8 +67,6 @@ static inline int get_id(const char *str, const char *doc, unsigned int max_id)
     return id;
 }
 
-#define GET_NUM_FROM_PRIO(p) (__be16_to_cpu(p) & 0x0FFF)
-
 #define BR_ID_FMT "%01hhX.%03hX.%02hhX:%02hhX:%02hhX:%02hhX:%02hhX:%02hhX"
 #define BR_ID_ARGS(x) ((GET_PRIORITY_FROM_IDENTIFIER(x) >> 4) & 0x0F), \
     GET_NUM_FROM_PRIO((x).s.priority), \

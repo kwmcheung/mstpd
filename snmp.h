@@ -29,13 +29,14 @@
 #define BR_NAME "br0"
 
 /* standard nodes */
-#define oid_iso         1                 /* iso(1) */
-#define oid_org         oid_iso, 3        /* iso(1).org(3) */
-#define oid_dod         oid_org, 6        /* iso(1).org(3).dod(6) */
-#define oid_internet    oid_dod, 1        /* iso(1).org(3).dod(6).internet(1) */
-#define oid_mgmt        oid_internet, 2   /* iso(1).org(3).dod(6).internet(1).mgmt(2) */
-#define oid_mib2        oid_mgmt, 1       /* iso(1).org(3).dod(6).internet(1).mgmt(2).mib-2(1) */
-#define oid_dot1dBridge oid_mib2, 17      /* iso(1).org(3).dod(6).internet(1).mgmt(2).mib-2(1).dot1dBridge(17) */
+#define oid_iso         1                  /* iso(1) */
+#define oid_org         oid_iso, 3         /* iso(1).org(3) */
+#define oid_dod         oid_org, 6         /* iso(1).org(3).dod(6) */
+#define oid_internet    oid_dod, 1         /* iso(1).org(3).dod(6).internet(1) */
+#define oid_mgmt        oid_internet, 2    /* iso(1).org(3).dod(6).internet(1).mgmt(2) */
+#define oid_mib2        oid_mgmt, 1        /* iso(1).org(3).dod(6).internet(1).mgmt(2).mib-2(1) */
+#define oid_dot1dBridge oid_mib2, 17       /* iso(1).org(3).dod(6).internet(1).mgmt(2).mib-2(1).dot1dBridge(17) */
+#define oid_dot1dStp    oid_dot1dBridge, 2 /* iso(1).org(3).dod(6).internet(1).mgmt(2).mib-2(1).dot1dBridge(17).dot1dStp(2) */
 
 void snmp_init(void);
 void snmp_fini(void);

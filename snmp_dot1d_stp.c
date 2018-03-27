@@ -29,8 +29,6 @@
 #include "ctl_socket_client.h"
 #include "snmp.h"
 
-#define GET_NUM_FROM_PRIO(p) (__be16_to_cpu(p) & 0x0FFF)
-
 #define SNMP_STP_PRIORITY               2
 #define SNMP_STP_TIME_SINCE_TOPO_CHANGE 3
 #define SNMP_STP_TOP_CHANGES            4
@@ -47,8 +45,6 @@
 #define SNMP_STP_VERSION                16
 #define SNMP_STP_TX_HOLD_COUNT          17
 
-/* iso(1).org(3).dod(6).internet(1).mgmt(2).mib-2(1).dot1dBridge(17) */
-#define oid_dot1dStp                        oid_dot1dBridge, 2
 /* iso(1).org(3).dod(6).internet(1).mgmt(2).mib-2(1).dot1dBridge(17).dot1dStp(2) */
 #define oid_dot1dStpProtocolSpecification   oid_dot1dStp, 1
 #define oid_dot1dStpPriority                oid_dot1dStp, SNMP_STP_PRIORITY
@@ -71,10 +67,9 @@ static int snmp_get_dot1d_stp(void *value, int len, int id)
 {
     CIST_BridgeStatus s;
     char root_port_name[IFNAMSIZ];
-    char *br_name = BR_NAME;
-    int br_index = if_nametoindex(br_name);
+    int br_index = if_nametoindex(BR_NAME);
 
-    if (0 == br_index)
+    if (!br_index)
         return SNMP_ERR_GENERR;
 
     if (CTL_get_cist_bridge_status(br_index, &s, root_port_name))
