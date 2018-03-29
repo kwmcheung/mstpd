@@ -27,13 +27,10 @@
 #include <dirent.h>
 #include <libnsh/src/nsh.h>
 
-#include "ctl_socket_client.h"
+#include "ctl_functions.h"
 #include "snmp.h"
 
 #define ELEMENT_SIZE(s,e) sizeof(((s*)0)->e)
-
-#define SYSFS_CLASS_NET "/sys/class/net"
-#define SYSFS_PATH_MAX  256
 
 /* iso(1).org(3).dod(6).internet(1).mgmt(2).mib-2(1).dot1dBridge(17).dot1dStp(2) */
 #define oid_dot1dStpPortTable oid_dot1dStp, 15
@@ -63,7 +60,14 @@ static nsh_table_index_t idx[NUM_INDEXES] = {
     NSH_TABLE_INDEX (ASN_INTEGER, table_data_t, port, 0),
 };
 
-nsh_table(table_reg, table_get_first, table_get_next, table_free, table_data_t, table_head, NUM_TABLE_ENTRIES, idx, NUM_INDEXES);
+nsh_table(dot1dStpPortTable,
+	  table_get_first,
+	  table_get_next,
+	  table_free,
+	  table_data_t,
+	  table_head,
+	  NUM_TABLE_ENTRIES,
+	  idx, NUM_INDEXES);
 
 static void table_create_entry(long port,
                                long priority,
@@ -97,21 +101,6 @@ static void table_create_entry(long port,
 
     entry->next = table_head;
     table_head  = entry;
-}
-
-static int not_dot_dotdot(const struct dirent *entry)
-{
-    const char *n = entry->d_name;
-
-    return !('.' == n[0] && (0 == n[1] || ('.' == n[1] && 0 == n[2])));
-}
-
-static int get_port_list(const char *br_ifname, struct dirent ***portlist)
-{
-    char buf[SYSFS_PATH_MAX];
-
-    snprintf(buf, sizeof(buf), SYSFS_CLASS_NET "/%s/brif", br_ifname);
-    return scandir(buf, portlist, not_dot_dotdot, versionsort);
 }
 
 static int snmp_map_port_state(int state)
@@ -219,7 +208,7 @@ void snmp_init_mib_dot1d_stp_port_table(void)
                           table_oid,
                           OID_LENGTH (table_oid),
                           table_handler,
-                          &table_reg,
+                          &dot1dStpPortTable,
                           table_load);
 }
 

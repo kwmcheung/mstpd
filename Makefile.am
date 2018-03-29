@@ -5,7 +5,8 @@ sbin_PROGRAMS = mstpd mstpctl
 mstpd_SOURCES = \
 	main.c epoll_loop.c brmon.c bridge_track.c libnetlink.c mstp.c \
 	packet.c netif_utils.c ctl_socket_server.c hmac_md5.c driver_deps.c \
-	snmp.c snmp_dot1d_stp.c snmp_dot1d_stp_port_table.c
+	snmp.c snmp_dot1d_stp.c snmp_dot1d_stp_port_table.c \
+	snmp_dot1d_stp_ext_port_table.c
 mstpctl_SOURCES = \
 	ctl_main.c ctl_socket_client.c
 

@@ -24,12 +24,32 @@
 
 #if _WITH_SNMP
 
+#include <dirent.h>
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/net-snmp-includes.h>
 #include <net-snmp/agent/net-snmp-agent-includes.h>
 
 #include "snmp_dot1d_stp.h"
 #include "snmp_dot1d_stp_port_table.h"
+#include "snmp_dot1d_stp_ext_port_table.h"
+
+#define SYSFS_CLASS_NET "/sys/class/net"
+#define SYSFS_PATH_MAX  256
+
+static int not_dot_dotdot(const struct dirent *entry)
+{
+    const char *n = entry->d_name;
+
+    return !('.' == n[0] && (0 == n[1] || ('.' == n[1] && 0 == n[2])));
+}
+
+int get_port_list(const char *br_ifname, struct dirent ***portlist)
+{
+    char buf[SYSFS_PATH_MAX];
+
+    snprintf(buf, sizeof(buf), SYSFS_CLASS_NET "/%s/brif", br_ifname);
+    return scandir(buf, portlist, not_dot_dotdot, versionsort);
+}
 
 void snmp_init(void)
 {
@@ -40,6 +60,7 @@ void snmp_init(void)
 
     snmp_init_mib_dot1d_stp();
     snmp_init_mib_dot1d_stp_port_table();
+    snmp_init_mib_dot1d_stp_ext_port_table();
 
     init_snmp("mstpdAgent");
 }

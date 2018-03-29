@@ -26,7 +26,7 @@
 
 #include <libnsh/src/nsh.h>
 
-#include "ctl_socket_client.h"
+#include "ctl_functions.h"
 #include "snmp.h"
 
 #define SNMP_STP_PRIORITY               2
