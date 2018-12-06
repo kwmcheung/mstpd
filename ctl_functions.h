@@ -461,6 +461,42 @@ CTL_DECLARE(add_bridges);
 #define del_bridges_ARGS (int *br_array)
 CTL_DECLARE(del_bridges);
 
+/* check that bridge is already added */
+#define CMD_CODE_bridge_is_added    (124)
+#define bridge_is_added_ARGS (int br_index, int *is_added)
+struct bridge_is_added_IN
+{
+    int br_index;
+};
+struct bridge_is_added_OUT
+{
+    int is_added;
+};
+#define bridge_is_added_COPY_IN  ({ in->br_index = br_index; })
+#define bridge_is_added_COPY_OUT ({ *is_added = out->is_added; })
+#define bridge_is_added_CALL (in->br_index, &out->is_added)
+CTL_DECLARE(bridge_is_added);
+
+/* check that bridge port is already added */
+#define CMD_CODE_bridge_port_is_added    (125)
+#define bridge_port_is_added_ARGS (int br_index, int port_index, \
+    int *is_added)
+struct bridge_port_is_added_IN
+{
+    int br_index;
+    int port_index;
+};
+struct bridge_port_is_added_OUT
+{
+    int is_added;
+};
+#define bridge_port_is_added_COPY_IN  ({ in->br_index = br_index; \
+    in->port_index = port_index; })
+#define bridge_port_is_added_COPY_OUT ({ *is_added = out->is_added; })
+#define bridge_port_is_added_CALL (in->br_index, in->port_index, \
+    &out->is_added)
+CTL_DECLARE(bridge_port_is_added);
+
 /* General case part in ctl command server switch */
 #define SERVER_MESSAGE_CASE(name)                            \
     case CMD_CODE_ ## name : do                              \

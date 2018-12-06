@@ -455,6 +455,7 @@ static inline int get_bridge_list(struct dirent ***namelist)
 static int cmd_showbridge(int argc, char *const *argv)
 {
     int i, count = 0;
+    int out_count = 0;
     int r = 0;
     struct dirent **namelist;
     param_id_t param_id = PARAM_NULL;
@@ -489,18 +490,26 @@ static int cmd_showbridge(int argc, char *const *argv)
 
     for(i = 0; i < count; ++i)
     {
+        int err;
+        int is_added;
         const char *name;
         if(1 < argc)
             name = argv[i + 1];
         else
             name = namelist[i]->d_name;
 
-        if(i)
-            do_arraynext_fmt();
+        err = CTL_bridge_is_added(if_nametoindex(name), &is_added);
+        if (!err && is_added)
+        {
+            if(out_count)
+                do_arraynext_fmt();
 
-        int err = do_showbridge(name, param_id);
-        if(err)
-            r = err;
+            err = do_showbridge(name, param_id);
+            if(err)
+                r = err;
+
+            out_count++;
+        }
     }
 
     do_arrayend_fmt();
@@ -511,6 +520,68 @@ static int cmd_showbridge(int argc, char *const *argv)
             free(namelist[i]);
         free(namelist);
     }
+
+    return r;
+}
+
+static int do_showbridgelist_item(const char *br_name)
+{
+    switch(format)
+    {
+        case FORMAT_PLAIN:
+            printf("%s\n", br_name);
+            return 0;
+        case FORMAT_JSON:
+            printf("\"%s\"", br_name);
+            return 0;
+        default:
+            return -3; /* -3 = unsupported or unknown format */
+    }
+}
+
+static int cmd_showbridgelist(int argc, char *const *argv)
+{
+    int i, count = 0;
+    int out_count = 0;
+    int r = 0;
+    struct dirent **namelist;
+
+    count = get_bridge_list(&namelist);
+    if(0 > count)
+    {
+        fprintf(stderr, "Error getting list of all bridges\n");
+        return -1;
+    }
+
+    do_arraystart_fmt();
+
+    for(i = 0; i < count; ++i)
+    {
+        int err;
+        int is_added;
+        const char *name;
+
+        name = namelist[i]->d_name;
+
+        err = CTL_bridge_is_added(if_nametoindex(name), &is_added);
+        if (!err && is_added)
+        {
+            if(out_count)
+                do_arraynext_fmt();
+
+            err = do_showbridgelist_item(name);
+            if(err)
+                r = err;
+
+            out_count++;
+        }
+    }
+
+    do_arrayend_fmt();
+
+    for(i = 0; i < count; ++i)
+        free(namelist[i]);
+    free(namelist);
 
     return r;
 }
@@ -2187,6 +2258,10 @@ static const struct command commands[] =
     {1, 32, "delbridge", cmd_delbridge,
      "<bridge> [<bridge> ...]", "Remove bridges from the mstpd's list"},
 
+    /* Show added bridges list */
+    {0, 0, "showbridgelist", cmd_showbridgelist,
+     "", "Show added bridges list"},
+
     /* Show global bridge */
     {0, 32, "showbridge", cmd_showbridge,
      "[<bridge> ... [param]]", "Show bridge state for the CIST"},
@@ -2564,6 +2639,8 @@ CLIENT_SIDE_FUNCTION(set_vid2fid)
 CLIENT_SIDE_FUNCTION(set_fid2mstid)
 CLIENT_SIDE_FUNCTION(set_vids2fids)
 CLIENT_SIDE_FUNCTION(set_fids2mstids)
+CLIENT_SIDE_FUNCTION(bridge_is_added)
+CLIENT_SIDE_FUNCTION(bridge_port_is_added)
 
 CTL_DECLARE(add_bridges)
 {

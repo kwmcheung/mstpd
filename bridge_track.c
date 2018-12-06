@@ -918,6 +918,22 @@ int CTL_del_bridges(int *br_array)
     return 0;
 }
 
+int CTL_bridge_is_added(int br_index, int *is_added)
+{
+    *is_added = (find_br(br_index) != NULL);
+    return 0;
+}
+
+int CTL_bridge_port_is_added(int br_index, int port_index, int *is_added)
+{
+    bridge_t *br = find_br(br_index);
+    if (br && find_if(br, port_index))
+        *is_added = 1;
+    else
+        *is_added = 0;
+    return 0;
+}
+
 int bridge_track_fini(void)
 {
     INFO("Stopping all bridges");
