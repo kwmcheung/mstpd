@@ -57,6 +57,17 @@ AS_IF([test "x$with_bashcompletiondir" = "xdefault"],
 AS_IF([test "x$with_bashcompletiondir" != "xdefault"],
       [AC_SUBST([bashcompletiondir], [$with_bashcompletiondir])])
 
+# SNMP
+AC_ARG_WITH([snmp],
+	[AS_HELP_STRING([--with-snmp], [Enable the use of SNMP @<:@default=no@:>@])],
+	[],
+	[with_snmp=no])
+mstpd_CHECK_SNMP
+if test x"$with_snmp" != x"no"; then
+	AC_CONFIG_SUBDIRS([libnsh])
+fi
+AM_CONDITIONAL([ENABLE_SNMP], [test x"$with_snmp" = x"yes"])
+
 # Define PACKAGE_BUILD
 PACKAGE_BUILD=`git log --pretty=format:'%h' -n 1`
 AC_SUBST(PACKAGE_BUILD)
